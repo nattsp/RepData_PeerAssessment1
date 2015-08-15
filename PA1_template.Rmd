@@ -8,11 +8,38 @@ output:
 
 ## Loading and preprocessing the data
 
+```{r}
+#Load the libraries we need
+library(dplyr)
+library(ggplot2)
+```
+```{r, results = "hide"}
+library(dplyr)
+#Make a connection to a zip file using unz
+con <- unz(".\\activity.zip", filename = "activity.csv")
+#Read the activity data from the zipped file into the dataframe activity
+activity <- read.csv(con, 
+                     colClasses = c("integer", "Date", "integer"))
+```
 
+```{r}
+summary(activity)
+```
 
 ## What is mean total number of steps taken per day?
 
-
+```{r}
+steps <- group_by(activity, date) %>%
+    summarise(StepspreDay = sum(steps, na.rm = TRUE))
+barplot()
+qplot(StepspreDay, data=steps, geom = "bar")
+ggplot(data = steps, aes(x = StepspreDay)) +
+    geom_histogram(binwidth=1000, colour="black", fill="white") +
+    geom_vline(data=steps, aes(xintercept = mean(StepspreDay)),
+               color="red", size=1, labels="Mean steps", show_guide=TRUE) +
+    geom_vline(data=steps, aes(xintercept = median(steps$StepspreDay)),
+               colour="orange", size=1, labels="Median steps", show_guide=TRUE)
+```
 
 ## What is the average daily activity pattern?
 
