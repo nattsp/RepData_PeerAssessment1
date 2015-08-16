@@ -1,4 +1,9 @@
-# Reproducible Research: Peer Assessment 1
+---
+title: "Reproducible Research: Peer Assessment 1"
+output: 
+  html_document:
+    keep_md: yes
+---
 
 ##Introduction
 
@@ -17,7 +22,8 @@ First load the R libraries we require for this analysis. Then we open the zip fi
 #Load the libraries we need
 library(dplyr)
 library(ggplot2)
-knitr::opts_chunk$set(fig.path = 'figure/')
+#knitr::opts_chunk$set(fig.path = 'figure/')
+options(scipen = 1, digits = 6)
 ```
 
 
@@ -39,13 +45,13 @@ summary(activity)
 ```
 
 ```
-##      steps             date               interval     
-##  Min.   :  0.00   Min.   :2012-10-01   Min.   :   0.0  
-##  1st Qu.:  0.00   1st Qu.:2012-10-16   1st Qu.: 588.8  
-##  Median :  0.00   Median :2012-10-31   Median :1177.5  
-##  Mean   : 37.38   Mean   :2012-10-31   Mean   :1177.5  
-##  3rd Qu.: 12.00   3rd Qu.:2012-11-15   3rd Qu.:1766.2  
-##  Max.   :806.00   Max.   :2012-11-30   Max.   :2355.0  
+##      steps            date               interval   
+##  Min.   :  0.0   Min.   :2012-10-01   Min.   :   0  
+##  1st Qu.:  0.0   1st Qu.:2012-10-16   1st Qu.: 589  
+##  Median :  0.0   Median :2012-10-31   Median :1178  
+##  Mean   : 37.4   Mean   :2012-10-31   Mean   :1178  
+##  3rd Qu.: 12.0   3rd Qu.:2012-11-15   3rd Qu.:1766  
+##  Max.   :806.0   Max.   :2012-11-30   Max.   :2355  
 ##  NA's   :2304
 ```
 
@@ -152,14 +158,208 @@ g <- g + geom_text(x = medianSteps + 500, y = 8.25,
 g
 ```
 
-![](figure/unnamed-chunk-7-1.png) 
+![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7-1.png) 
+As you can see from the graph the average steps per day is 9354 and the median is 10395.
 
 ## What is the average daily activity pattern?
 
+The number of steps varies throughout the day. To get a feel for how many steps are taken at different times through the day we are going to take a look at the averge number of steps at each time period.
 
+
+```r
+dailyActivity <- activity %>%
+    
+    #Group together each time period through out the day
+    group_by(interval) %>%
+    
+    #Average the number of steps taken at each time over the two months
+    #Ignore missing values
+    summarise(avgSteps = mean(steps, na.rm = TRUE))
+```
+The daily number of steps at different times of the day.
+
+
+```r
+head(dailyActivity)
+```
+
+```
+## Source: local data frame [6 x 2]
+## 
+##   interval  avgSteps
+## 1        0 1.7169811
+## 2        5 0.3396226
+## 3       10 0.1320755
+## 4       15 0.1509434
+## 5       20 0.0754717
+## 6       25 2.0943396
+```
+
+```r
+summary(dailyActivity)
+```
+
+```
+##     interval       avgSteps     
+##  Min.   :   0   Min.   :  0.00  
+##  1st Qu.: 589   1st Qu.:  2.49  
+##  Median :1178   Median : 34.11  
+##  Mean   :1178   Mean   : 37.38  
+##  3rd Qu.:1766   3rd Qu.: 52.83  
+##  Max.   :2355   Max.   :206.17
+```
+
+Here is a plot of the steps over the day.
+
+
+```r
+#Find the maximum number of steps and at what time is occurs
+maxsteps <- max(dailyActivity$avgSteps)
+maxstepstime <- filter(dailyActivity, avgSteps == maxsteps)
+maxLabel <- paste("Maximum steps in 5 minutes is ", 
+                  round(maxsteps, 1),
+                  " at ", maxstepstime$interval)
+
+g <- ggplot(dailyActivity, aes(x=interval, y=avgSteps))
+
+#Plot the data as a time series
+g <- g + geom_line()
+
+#Add titles and labels
+g <- g + labs(title = "Steps through out the day") +
+    labs(x = "Time in of day in hours and minutes", 
+         y = "Number of steps per 5 minutes")
+
+#Show the average maximum steps and the time it occurs
+g <- g + geom_vline(xintercept=maxstepstime$interval)
+g <- g + geom_hline(yintercept=maxsteps)
+g <- g + geom_text(x = maxstepstime$interval + 60,
+                   y = maxsteps - 15,
+                   hjust=0, vjust=0,
+                   size = 4,
+                   label = maxLabel)
+
+#plot the graph
+g
+```
+
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10-1.png) 
+
+The plot shows that the maximum number of steps occurs at 835 and is on average 206.
 
 ## Imputing missing values
 
+Ignoring missing values might not give us an accurate picture of what is going on. Ignoring missing values might introduce some bias into the results.
+
+We impute the missing values using the average number of steps at each time period that we generated above.
+
+
+```r
+#Find the location of the missing values
+missingSteps <- is.na(activity$steps)
+#How many values are we missing?
+missingValues <- sum(is.na(activity$steps))
+```
+
+There are a total of 2304 missing values from our data set. Below we replace the missing values with the average steps for that time of day, calculated in the previous section.
+
+
+```r
+#Create a vector of replacement step values matching the 
+#average step count for that time of day.
+replaceSteps <- activity %>%
+    
+    #select only the missing entries
+    filter(missingSteps) %>%
+    
+    #match the timestamp with the average for that time
+    left_join(dailyActivity) %>%
+    
+    #keep only the vector of replacement averages
+    select(avgSteps)
+```
+
+```
+## Joining by: "interval"
+```
+
+```r
+#Collect all the step values together with the missing values replaced
+imputeSteps <- replace(activity$steps, missingSteps, replaceSteps$avgSteps)
+
+#Create our new dataset then update the steps to the imputed values
+activityImpute <- activity
+activityImpute$steps <- imputeSteps
+```
+
+Now when we see the first few lines of our newly imputed dataset *activityImpute* the missing values are filled in.
+
+
+```r
+head(activityImpute)
+```
+
+```
+##       steps       date interval
+## 1 1.7169811 2012-10-01        0
+## 2 0.3396226 2012-10-01        5
+## 3 0.1320755 2012-10-01       10
+## 4 0.1509434 2012-10-01       15
+## 5 0.0754717 2012-10-01       20
+## 6 2.0943396 2012-10-01       25
+```
+
+Imputing the missing data changes the histogram of steps per day as we can see below.
+
+
+```r
+#Mean number of steps per day
+stepsperday <- activityImpute %>%
+    
+    #Group the days together
+    group_by(date) %>%
+    
+    #Add the steps for the day using the imputed data
+    summarize(StepsPerDay = sum(steps, na.rm = TRUE))
+
+#Find the average and median values
+meanSteps <- mean(stepsperday$StepsPerDay)
+medianSteps <- median(stepsperday$StepsPerDay)
+
+#Start building the plot
+meanLabel <- paste("Average steps per day: ",round(meanSteps,0))
+medianLabel <- paste("Median steps per day: ", round(medianSteps))
+
+g <- ggplot(stepsperday, aes(x = stepsperday$StepsPerDay))
+
+#Generage a histogram of the frequency of different daily totals
+g <- g + geom_histogram(binwidth = 500)
+
+#Add some labels
+g <- g + labs(title="Distribution of steps per day with missing values imputed") +
+    labs(x="Number of steps", y="Count")
+
+#Show the mean
+g <- g + geom_vline(xintercept=meanSteps)
+g <- g + geom_text(x = meanSteps + 500, y = 9,
+                   hjust=0, vjust=0,
+                   size = 4,
+                   label = meanLabel)
+
+#Show the median
+g<- g + geom_vline(xintercept=medianSteps)
+g <- g + geom_text(x = medianSteps + 500, y = 8.25,
+                   hjust=0, vjust=0,
+                   size = 4,
+                   label = medianLabel)
+
+#plot
+g
+```
+
+![plot of chunk unnamed-chunk-14](figure/unnamed-chunk-14-1.png) 
+
+The mean and median rounded to zero decimal places are the same at 10766. We can see that the imputed data is less skewed toward the lower end of steps per day and the median and mean are close together.
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
