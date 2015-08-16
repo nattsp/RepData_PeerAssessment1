@@ -74,7 +74,7 @@ medianSteps <- median(stepsperday$StepsPerDay)
 
 Let's plot a histogram showing the frequency of particular numbers of steps per day. The plot also shows both the median and mean steps per day.
 
-```{r}
+```{r, fig.height=4}
 #Save some labels to be used in the graph
 meanLabel <- paste("Average steps per day: ",round(meanSteps,0))
 medianLabel <- paste("Median steps per day: ", round(medianSteps))
@@ -130,7 +130,7 @@ summary(dailyActivity)
 
 Here is a plot of the steps over the day.
 
-```{r}
+```{r, fig.height=4}
 #Find the maximum number of steps and at what time is occurs
 maxsteps <- max(dailyActivity$avgSteps)
 maxstepstime <- filter(dailyActivity, avgSteps == maxsteps)
@@ -208,7 +208,7 @@ head(activityImpute)
 
 Imputing the missing data changes the histogram of steps per day as we can see below.
 
-```{r}
+```{r, fig.height=4}
 #Mean number of steps per day
 stepsperday <- activityImpute %>%
     
