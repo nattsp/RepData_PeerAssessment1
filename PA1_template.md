@@ -11,7 +11,7 @@ Large amounts of data are now collected about our movements through out the day.
 
 ## Loading and preprocessing the data
 
-As we have alredy discussed these data hold the number of steps taken over the two months. The data are held in a zip file in the same directory as our markdown file.
+As we have already discussed these data hold the number of steps taken over the two months. The data are held in a zip file in the same directory as our markdown file.
 
 The activity monitoring data are made up of three columns: *steps*: containing the number of steps in a 5 minute interval; *date*: the date the steps were counted; and *interval*: the start time of the 5 minute interval in the format hhmm.
 
@@ -96,7 +96,7 @@ stepsperday <- activity %>%
     summarize(StepsPerDay = sum(steps, na.rm = TRUE))
 ```
 
-The summarised data looks like the following:
+The summarized data looks like the following:
 
 
 ```r
@@ -163,7 +163,7 @@ As you can see from the graph the average steps per day is 9354 and the median i
 
 ## What is the average daily activity pattern?
 
-The number of steps varies throughout the day. To get a feel for how many steps are taken at different times through the day we are going to take a look at the averge number of steps at each time period.
+The number of steps varies throughout the day. To get a feel for how many steps are taken at different times through the day we are going to take a look at the average number of steps at each time period.
 
 
 ```r
@@ -362,4 +362,112 @@ g
 The mean and median rounded to zero decimal places are the same at 10766. We can see that the imputed data is less skewed toward the lower end of steps per day and the median and mean are close together.
 
 
-## Are there differences in activity patterns between weekdays and weekends?
+##Are there differences in activity patterns between weekdays and weekends?
+
+There are differences between the pattern of steps taken on weekdays when compared to weekends. We will show some of these differences below.
+
+First let's set up data frame mapping days of the week to weekday or weekend.
+
+
+```r
+weekday <- data.frame(weekdays = c("Monday", "Tuesday", "Wednesday", 
+                                   "Thursday", "Friday",
+                                   "Saturday", "Sunday"), 
+                      weekday = c("weekday", "weekday", "weekday",
+                                  "weekday", "weekday",
+                                  "weekend", "weekend"))
+print(weekday)
+```
+
+```
+##    weekdays weekday
+## 1    Monday weekday
+## 2   Tuesday weekday
+## 3 Wednesday weekday
+## 4  Thursday weekday
+## 5    Friday weekday
+## 6  Saturday weekend
+## 7    Sunday weekend
+```
+
+Now we map the dates provided in the dataset to either weekday or weekend.
+
+
+```r
+#Start with the data with the imputed missing data
+activityWeekdays <- activityImpute %>%
+    
+    #Add a column that shows the day of the week 
+    #corresponding to that date
+    mutate(weekdays = weekdays(activityImpute$date)) %>%
+
+    #Use our weekday dataframe to map our days of the week to
+    #weekday or weekend
+    left_join(weekday)
+```
+
+```
+## Joining by: "weekdays"
+```
+
+```
+## Warning in left_join_impl(x, y, by$x, by$y): joining factor and character
+## vector, coercing into character vector
+```
+
+```r
+head(activityWeekdays)
+```
+
+```
+##       steps       date interval weekdays weekday
+## 1 1.7169811 2012-10-01        0   Monday weekday
+## 2 0.3396226 2012-10-01        5   Monday weekday
+## 3 0.1320755 2012-10-01       10   Monday weekday
+## 4 0.1509434 2012-10-01       15   Monday weekday
+## 5 0.0754717 2012-10-01       20   Monday weekday
+## 6 2.0943396 2012-10-01       25   Monday weekday
+```
+
+Let's compare the steps taken through the day on a weekday to those taken on the weekend. We will take the average steps for each time period for weekdays and weekends separately.
+
+
+```r
+dailyActivity <- activityWeekdays %>%
+    
+    #We only require steps per interval and weekend or weekday
+    select(steps, interval, weekday) %>% 
+    
+    #We want the average steps for each time of day for weekdays and weekends
+    group_by(weekday, interval) %>%
+    summarise(avgSteps = mean(steps))
+
+#Plot the weekdays over the weekends for easy comparison.
+g <- ggplot(dailyActivity, aes(x=interval, y=avgSteps))
+
+#Timeseries plots
+g <- g + geom_line()
+
+#One plot for each of weekday and weekend
+g <- g + facet_grid(weekday ~ .)
+
+#Label graphs
+g <- g + labs(title = "Steps through out the day by weekday and weekend") +
+    labs(x = "Time in of day in hours and minutes", 
+         y = "Number of steps per 5 minutes")
+
+#Plot graphs
+g
+```
+
+![plot of chunk unnamed-chunk-17](figure/unnamed-chunk-17-1.png) 
+
+As we might expect there are some obvious differences in the pattern of steps taken on weekdays when compared to weekends. People tend to take more steps in earlier in the morning starting at around 6am. This peaks as we are seen just after 8:30 before dropping down to a lower numbers.
+
+In contrast to this on the weekend there is a more consistent level of working without the one big peak. After a slower start there are more steps taken on the weekend.
+
+##Conclusion
+
+We have been able to show how steps vary per day as well as over the day. We have shown some difficulties that can arise from ignoring missing values and we shown a difference in weekend walking patterns when compared to weekdays.
+
+Also demonstrated is reproducible work and literate programming. The explanations have been interleaved with the programming code and everything needed to reproduce this work is publicly available.
