@@ -2,7 +2,7 @@
 
 ##Introduction
 
-Large amounts of data are now collected about our movements through out the day. There are a growing number of monitoring devices on the market. We are going to use one such set of data to demonstrate the principal of reproducible research. Below is a paper analyzing steps taken during a two month period October and November 2012. The idea behind this paper is that everything needed to reproduce the results are all contained together. Writing papers in this way makes it much easier to reproduce and check results found by fellow data scientists and other researchers. With the added benefit that sharing data sets allows new questions to be asked of existing data.
+Large amounts of data are now collected about our movements through out the day. There are a growing number of monitoring devices on the market. We are going to use one such set of data to demonstrate the principal of reproducible research. Below is a paper analyzing steps taken during a two month period, October and November 2012. The idea behind this paper is that everything needed to reproduce the results are all contained together. Writing papers in this way makes it much easier to reproduce and check results found by fellow data scientists and other researchers. With the added benefit that sharing data sets allows for new questions to be asked of existing data.
 
 ## Loading and preprocessing the data
 
@@ -17,6 +17,7 @@ First load the R libraries we require for this analysis. Then we open the zip fi
 #Load the libraries we need
 library(dplyr)
 library(ggplot2)
+knitr::opts_chunk$set(fig.path = 'figures/')
 ```
 
 
@@ -75,9 +76,7 @@ str(activity)
 
 ## What is mean total number of steps taken per day?
 
-The total number of steps a day can be found by adding all the steps from a particular data up.
-
-The following section of code uses the dplyr package in r to group all the data from each day together before adding up the steps.
+The total number of steps a day can be found by adding up all the steps from a particular date. The following section of code uses the dplyr package in *r* to group all the data from each day together before adding up the steps.
 
 
 ```r
@@ -86,8 +85,8 @@ stepsperday <- activity %>%
     #Group together the data for each day
     group_by(date) %>%
     
-    #Summarize the data per day using a new variable StepsPerDay with
-    #the accumulated steps. Ignore missing values.
+    #Populate a new column StepsPerDay with the total steps
+    #Ignore missing values
     summarize(StepsPerDay = sum(steps, na.rm = TRUE))
 ```
 
@@ -110,7 +109,7 @@ head(stepsperday)
 ## 6 2012-10-06       15420
 ```
 
-Now we find the average number of steps and the median number of steps.
+Now we find the average number of steps and the median number of steps across the two months.
 
 
 ```r
@@ -118,7 +117,7 @@ meanSteps <- mean(stepsperday$StepsPerDay)
 medianSteps <- median(stepsperday$StepsPerDay)
 ```
 
-Let's plot a histogram showing the frequency of particular number of steps per day. The plot also shows both the median and mean steps per day.
+Let's plot a histogram showing the frequency of particular numbers of steps per day. The plot also shows both the median and mean steps per day.
 
 
 ```r
@@ -153,9 +152,8 @@ g <- g + geom_text(x = medianSteps + 500, y = 8.25,
 g
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
+![](figures/unnamed-chunk-7-1.png) 
 
-```r
 ## What is the average daily activity pattern?
 
 
@@ -165,4 +163,3 @@ g
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
-```
