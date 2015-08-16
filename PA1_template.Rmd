@@ -105,6 +105,7 @@ g <- g + geom_text(x = medianSteps + 500, y = 8.25,
 #plot the data
 g
 ```
+
 As you can see from the graph the average steps per day is `r round(meanSteps, 0)` and the median is `r round(medianSteps, 0)`.
 
 ## What is the average daily activity pattern?
@@ -121,6 +122,7 @@ dailyActivity <- activity %>%
     #Ignore missing values
     summarise(avgSteps = mean(steps, na.rm = TRUE))
 ```
+
 The daily number of steps at different times of the day.
 
 ```{r}

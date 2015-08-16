@@ -159,6 +159,7 @@ g
 ```
 
 ![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7-1.png) 
+
 As you can see from the graph the average steps per day is 9354 and the median is 10395.
 
 ## What is the average daily activity pattern?
@@ -176,6 +177,7 @@ dailyActivity <- activity %>%
     #Ignore missing values
     summarise(avgSteps = mean(steps, na.rm = TRUE))
 ```
+
 The daily number of steps at different times of the day.
 
 
