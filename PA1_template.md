@@ -17,7 +17,7 @@ First load the R libraries we require for this analysis. Then we open the zip fi
 #Load the libraries we need
 library(dplyr)
 library(ggplot2)
-knitr::opts_chunk$set(fig.path = 'figures/')
+knitr::opts_chunk$set(fig.path = 'figure/')
 ```
 
 
@@ -152,7 +152,7 @@ g <- g + geom_text(x = medianSteps + 500, y = 8.25,
 g
 ```
 
-![](figures/unnamed-chunk-7-1.png) 
+![](figure/unnamed-chunk-7-1.png) 
 
 ## What is the average daily activity pattern?
 
